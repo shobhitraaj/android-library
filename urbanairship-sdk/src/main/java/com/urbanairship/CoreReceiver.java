@@ -16,6 +16,8 @@ import com.urbanairship.actions.ActionService;
 import com.urbanairship.analytics.InteractiveNotificationEvent;
 import com.urbanairship.push.PushManager;
 import com.urbanairship.push.PushMessage;
+import com.urbanairship.push.UaNotificationOpenCallback;
+import com.urbanairship.push.UnprocessedIntentManager;
 import com.urbanairship.push.iam.InAppMessage;
 import com.urbanairship.push.iam.InAppMessageManager;
 import com.urbanairship.push.iam.ResolutionEvent;
@@ -34,6 +36,7 @@ public class CoreReceiver extends BroadcastReceiver {
 
         if (!UAirship.isTakingOff() && !UAirship.isFlying()) {
             Logger.error("CoreReceiver - unable to receive intent, takeOff not called.");
+            UnprocessedIntentManager.getAppUnprocessedIntentManager().setUnProcessedIntent(intent);
             return;
         }
 
@@ -43,6 +46,14 @@ public class CoreReceiver extends BroadcastReceiver {
 
         Logger.verbose("CoreReceiver - Received intent: " + intent.getAction());
 
+        processIncomingIntents(context, intent);
+    }
+
+
+    private void processIncomingIntents(final Context context, final Intent intent) {
+        if (intent == null || intent.getAction() == null)
+            return;
+        Logger.verbose("CoreReceiver - processIncomingIntents intent: " + intent.getAction());
         switch (intent.getAction()) {
             case PushManager.ACTION_NOTIFICATION_OPENED_PROXY:
                 onNotificationOpenedProxy(context, intent);
@@ -55,7 +66,20 @@ public class CoreReceiver extends BroadcastReceiver {
                 break;
             case PushManager.ACTION_NOTIFICATION_OPENED:
                 onNotificationOpened(context, intent);
+                break;
+            case UAirship.ACTION_AIRSHIP_READY:
+                UnprocessedIntentManager unprocessedIntentManager = UnprocessedIntentManager.getAppUnprocessedIntentManager();
+                if (unprocessedIntentManager != null && unprocessedIntentManager.getUnProcessedIntents().size() > 0) {
+                    Intent unProcessedIntent = unprocessedIntentManager.getUnProcessedIntents().get(0);
+                    if (unProcessedIntent != null) {
+                        Logger.verbose("CoreReceiver - processSaved intent: ");
+                        processIncomingIntents(context, unProcessedIntent);
+                        unprocessedIntentManager.clearUnprocessedIntents();
+                    }
+                }
+                break;
         }
+
     }
 
     /**
@@ -70,6 +94,13 @@ public class CoreReceiver extends BroadcastReceiver {
             Logger.error("CoreReceiver - Intent is missing push message for: " + intent.getAction());
             return;
         }
+
+        UaNotificationOpenCallback uaNotificationOpenCallback = UAirship.getmUaNotificationOpenCallback();
+        if (uaNotificationOpenCallback != null) {
+            Logger.verbose("CoreReceiver - UaNotificationOpenCallback is not null delegating control to app.");
+            uaNotificationOpenCallback.intentReceived(message);
+        }
+
 
         int notificationId = intent.getIntExtra(PushManager.EXTRA_NOTIFICATION_ID, -1);
 
@@ -227,8 +258,10 @@ public class CoreReceiver extends BroadcastReceiver {
             }
 
         } else {
-
-            if (getResultCode() != AirshipReceiver.RESULT_ACTIVITY_LAUNCHED) {
+            UaNotificationOpenCallback uaNotificationOpenCallback = UAirship.getmUaNotificationOpenCallback();
+            if (uaNotificationOpenCallback != null) {
+                Logger.verbose("CoreReceiver - UaNotificationOpenCallback assuming notification is delivered to app in open proxy method.");
+            } else if (getResultCode() != AirshipReceiver.RESULT_ACTIVITY_LAUNCHED) {
                 PendingIntent contentIntent = (PendingIntent) intent.getExtras().get(PushManager.EXTRA_NOTIFICATION_CONTENT_INTENT);
                 if (contentIntent != null) {
                     try {

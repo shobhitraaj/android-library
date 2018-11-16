@@ -42,11 +42,14 @@ public class OpenExternalUrlAction extends Action {
         Uri uri = UriUtils.parse(arguments.getValue().getString());
 
         Logger.info("Opening URI: " + uri);
+        if (UAirship.getmUaNotificationOpenCallback() != null) {
+            Logger.verbose("DeepLinkAction - UaNotificationOpenCallback is not null delegating control to app.");
+        }else{
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-        UAirship.getApplicationContext().startActivity(intent);
+            UAirship.getApplicationContext().startActivity(intent);
+        }
         return ActionResult.newResult(arguments.getValue());
     }
 

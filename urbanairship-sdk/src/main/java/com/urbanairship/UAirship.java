@@ -31,6 +31,7 @@ import com.urbanairship.messagecenter.MessageCenter;
 import com.urbanairship.push.NamedUser;
 import com.urbanairship.push.PushManager;
 import com.urbanairship.push.PushProvider;
+import com.urbanairship.push.UaNotificationOpenCallback;
 import com.urbanairship.push.iam.InAppMessageManager;
 import com.urbanairship.richpush.RichPushInbox;
 import com.urbanairship.util.ManifestUtils;
@@ -53,9 +54,10 @@ public class UAirship {
      */
     public static final String ACTION_AIRSHIP_READY = "com.urbanairship.AIRSHIP_READY";
 
-    @IntDef({ AMAZON_PLATFORM, ANDROID_PLATFORM })
+    @IntDef({AMAZON_PLATFORM, ANDROID_PLATFORM})
     @Retention(RetentionPolicy.SOURCE)
-    public @interface Platform {}
+    public @interface Platform {
+    }
 
     /**
      * Amazon platform type. Only ADM transport will be allowed.
@@ -114,6 +116,16 @@ public class UAirship {
     MessageCenter messageCenter;
     NamedUser namedUser;
     Automation automation;
+    static UaNotificationOpenCallback mUaNotificationOpenCallback;
+
+    public static UaNotificationOpenCallback getmUaNotificationOpenCallback() {
+        return mUaNotificationOpenCallback;
+    }
+
+    public static void setmUaNotificationOpenCallback(UaNotificationOpenCallback mUaNotificationOpenCallback) {
+        UAirship.mUaNotificationOpenCallback = mUaNotificationOpenCallback;
+    }
+
 
     @Platform
     int platform;
@@ -150,7 +162,7 @@ public class UAirship {
      * Waits for UAirship to takeOff and be ready.
      *
      * @param millis Time to wait for UAirship to be ready in milliseconds or {@code 0} to wait
-     * forever.
+     *               forever.
      * @return The ready UAirship instance, or {@code null} if UAirship
      * is not ready by the specified wait time.
      * @hide
@@ -204,9 +216,9 @@ public class UAirship {
      * asynchronous callbacks are executed.
      *
      * @param callback An optional callback
-     * @param looper A Looper object whose message queue will be used for the callback,
-     * or null to make callbacks on the calling thread or main thread if the current thread
-     * does not have a looper associated with it.
+     * @param looper   A Looper object whose message queue will be used for the callback,
+     *                 or null to make callbacks on the calling thread or main thread if the current thread
+     *                 does not have a looper associated with it.
      * @return A cancelable object that can be used to cancel the callback.
      */
     @NonNull
@@ -248,9 +260,9 @@ public class UAirship {
      * of the shared methods. The config will be loaded from {@code airshipconfig.properties} file in the
      * assets directory. See {@link com.urbanairship.AirshipConfigOptions.Builder#applyDefaultProperties(Context)}.
      *
-     * @param application The application (required)
+     * @param application   The application (required)
      * @param readyCallback Optional ready callback. The callback will be triggered on a background thread
-     * that performs {@code takeOff}.
+     *                      that performs {@code takeOff}.
      */
     @MainThread
     public static void takeOff(@NonNull Application application, @Nullable OnReadyCallback readyCallback) {
@@ -261,9 +273,9 @@ public class UAirship {
      * Take off with defined AirshipConfigOptions.
      *
      * @param application The application (required)
-     * @param options The launch options. If not null, the options passed in here
-     * will override the options loaded from the <code>.properties</code> file. This parameter
-     * is useful for specifying options at runtime.
+     * @param options     The launch options. If not null, the options passed in here
+     *                    will override the options loaded from the <code>.properties</code> file. This parameter
+     *                    is useful for specifying options at runtime.
      */
     @MainThread
     public static void takeOff(@NonNull Application application, @Nullable AirshipConfigOptions options) {
@@ -275,12 +287,12 @@ public class UAirship {
      * ready callback will be executed before the UAirship instance is returned by any of the shared
      * methods.
      *
-     * @param application The application (required)
-     * @param options The launch options. If not null, the options passed in here
-     * will override the options loaded from the <code>.properties</code> file. This parameter
-     * is useful for specifying options at runtime.
+     * @param application   The application (required)
+     * @param options       The launch options. If not null, the options passed in here
+     *                      will override the options loaded from the <code>.properties</code> file. This parameter
+     *                      is useful for specifying options at runtime.
      * @param readyCallback Optional ready callback. The callback will be triggered on a background thread
-     * that performs {@code takeOff}.
+     *                      that performs {@code takeOff}.
      */
     @MainThread
     public static void takeOff(@NonNull final Application application, @Nullable final AirshipConfigOptions options, @Nullable final OnReadyCallback readyCallback) {
@@ -338,9 +350,9 @@ public class UAirship {
     /**
      * Actually performs takeOff. This is called from takeOff on a background thread.
      *
-     * @param application The application (required)
-     * @param options The launch options. If not null, the options passed in here will override the
-     * options loaded from the <code>.properties</code> file. This parameter is useful for specifying options at runtime.
+     * @param application   The application (required)
+     * @param options       The launch options. If not null, the options passed in here will override the
+     *                      options loaded from the <code>.properties</code> file. This parameter is useful for specifying options at runtime.
      * @param readyCallback Optional ready callback.
      */
     private static void executeTakeOff(@NonNull Application application, @Nullable AirshipConfigOptions options, @Nullable OnReadyCallback readyCallback) {
@@ -731,7 +743,9 @@ public class UAirship {
      *
      * @return The default message center.
      */
-    public MessageCenter getMessageCenter() { return messageCenter; }
+    public MessageCenter getMessageCenter() {
+        return messageCenter;
+    }
 
     /**
      * Returns the {@link com.urbanairship.automation.Automation} instance.
@@ -806,7 +820,7 @@ public class UAirship {
     /**
      * Determines which push provider to use for the given platform.
      *
-     * @param platform The providers platform.
+     * @param platform  The providers platform.
      * @param providers The available providers.
      * @return The platform's best provider, or {@code null}.
      */
