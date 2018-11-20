@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.urbanairship.Logger;
+import com.urbanairship.NpNotificationClickCallBack;
 import com.urbanairship.UAirship;
 import com.urbanairship.util.UriUtils;
 
@@ -42,7 +43,7 @@ public class OpenExternalUrlAction extends Action {
         Uri uri = UriUtils.parse(arguments.getValue().getString());
 
         Logger.info("Opening URI: " + uri);
-        if (UAirship.getmUaNotificationOpenCallback() != null) {
+        if (NpNotificationClickCallBack.getInstance().getUaNotificationOpenCallback() != null) {
             Logger.verbose("DeepLinkAction - UaNotificationOpenCallback is not null delegating control to app.");
         }else{
             Intent intent = new Intent(Intent.ACTION_VIEW, uri);

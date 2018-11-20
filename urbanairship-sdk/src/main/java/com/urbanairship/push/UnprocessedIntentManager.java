@@ -2,11 +2,6 @@ package com.urbanairship.push;
 
 import android.content.Intent;
 
-import com.urbanairship.Logger;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by shobhit.raj on 02/11/18.
  */
@@ -14,7 +9,7 @@ import java.util.List;
 public class UnprocessedIntentManager {
 
     private static UnprocessedIntentManager mAppUnprocessedIntentManager = null;
-    private List<Intent> pendingIntents = new ArrayList<>();
+    private Intent pendingIntent = null;
 
     private UnprocessedIntentManager() {
 
@@ -29,17 +24,16 @@ public class UnprocessedIntentManager {
         return mAppUnprocessedIntentManager;
     }
 
-    public void setUnProcessedIntent(Intent intent) {
-        Logger.verbose("UnprocessedIntentManager - adding intent for post processing: " + intent.getAction());
-        pendingIntents.add(intent);
+    public void setPendingIntent(Intent intent) {
+        this.pendingIntent = intent;
     }
 
-    public List<Intent> getUnProcessedIntents() {
-        return pendingIntents;
+    public Intent getPendingIntent() {
+        return pendingIntent;
     }
 
-    public void clearUnprocessedIntents() {
-        pendingIntents.clear();
+    public void clearPendingIntent() {
+        pendingIntent = null;
     }
 
 }

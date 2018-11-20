@@ -116,16 +116,6 @@ public class UAirship {
     MessageCenter messageCenter;
     NamedUser namedUser;
     Automation automation;
-    static UaNotificationOpenCallback mUaNotificationOpenCallback;
-
-    public static UaNotificationOpenCallback getmUaNotificationOpenCallback() {
-        return mUaNotificationOpenCallback;
-    }
-
-    public static void setmUaNotificationOpenCallback(UaNotificationOpenCallback mUaNotificationOpenCallback) {
-        UAirship.mUaNotificationOpenCallback = mUaNotificationOpenCallback;
-    }
-
 
     @Platform
     int platform;
