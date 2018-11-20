@@ -1,6 +1,7 @@
 package com.urbanairship;
 
 import com.urbanairship.push.UaNotificationOpenCallback;
+import com.urbanairship.push.UnprocessedIntentManager;
 
 /**
  * Created by shobhit.raj on 20/11/18.
@@ -16,8 +17,10 @@ public class NpNotificationClickCallBack {
     }
 
     public static NpNotificationClickCallBack getInstance(){
-        if(npNotificationClickCallBack == null){
-            npNotificationClickCallBack = new NpNotificationClickCallBack();
+        synchronized (NpNotificationClickCallBack.class) {
+            if(npNotificationClickCallBack == null){
+                npNotificationClickCallBack = new NpNotificationClickCallBack();
+            }
         }
         return npNotificationClickCallBack;
     }
