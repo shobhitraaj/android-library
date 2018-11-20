@@ -24,7 +24,7 @@ allprojects {
 }
 
 ext {
-    libVersion = "8.9.7.1"
+    libVersion = "8.9.7.2"
 }
 
 task makeaar(type: Copy) {
