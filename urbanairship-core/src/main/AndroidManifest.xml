@@ -87,9 +87,13 @@
 
         <receiver android:name="com.urbanairship.CoreReceiver"
                   android:exported="false">
-            <intent-filter android:priority="-999">
+            <intent-filter>
                 <action android:name="com.urbanairship.push.OPENED" />
                 <category android:name="${applicationId}" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.urbanairship.AIRSHIP_READY"/>
+                <category android:name="${applicationId}"/>
             </intent-filter>
         </receiver>
 
