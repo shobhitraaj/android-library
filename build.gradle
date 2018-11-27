@@ -22,3 +22,34 @@ allprojects {
         jcenter()
     }
 }
+
+ext {
+    libVersion = "9.5.4.1"
+}
+
+task makeaar(type: Copy) {
+    def versionString = project.libVersion
+    from fileTree(".").files
+    into 'build/libs-urbanAirship/'+versionString
+    include "urbanairship*-debug.aar"
+    exclude 'build', 'external-libs', 'external-libs-compileonly', 'app'
+    includeEmptyDirs = false
+    rename { String fileName ->
+        fileName.replace('-debug', '@ua-v'+versionString)
+    }
+}
+
+
+
+task buildsdk(type: Copy, dependsOn: makeaar) {
+    def versionString = project.libVersion
+    from fileTree(".").files
+    into 'build/libs-urbanAirship/'+versionString
+    include 'urbanairship*.jar'
+    exclude 'build', 'external-libs', 'external-libs-compileonly', 'app'
+    includeEmptyDirs = false
+    rename { String fileName ->
+        fileName.replace('.jar', '@ua-v'+versionString+'.jar')
+    }
+}
+

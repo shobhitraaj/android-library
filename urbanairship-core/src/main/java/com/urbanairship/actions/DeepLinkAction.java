@@ -7,7 +7,9 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.urbanairship.Logger;
+import com.urbanairship.NpNotificationClickCallBack;
 import com.urbanairship.UAirship;
+import com.urbanairship.UaNotificationOpenCallback;
 import com.urbanairship.util.UriUtils;
 
 /**
@@ -40,14 +42,17 @@ public class DeepLinkAction extends Action {
     @Override
     public ActionResult perform(@NonNull ActionArguments arguments) {
         Uri uri = UriUtils.parse(arguments.getValue().getString());
+        UaNotificationOpenCallback uaNotificationOpenCallback = NpNotificationClickCallBack.getInstance().getUaNotificationOpenCallback();
+        if (uaNotificationOpenCallback != null) {
+            Logger.info("dropping Deep linking: " + uri);
+        } else {
+            Logger.info("Deep linking: " + uri);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    .setPackage(UAirship.getPackageName());
+            UAirship.getApplicationContext().startActivity(intent);
+        }
 
-        Logger.info("Deep linking: " + uri);
-
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                .setPackage(UAirship.getPackageName());
-
-        UAirship.getApplicationContext().startActivity(intent);
         return ActionResult.newResult(arguments.getValue());
     }
 
