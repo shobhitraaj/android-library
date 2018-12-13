@@ -291,6 +291,10 @@ public class JobInfo {
             return builder.build();
         } catch (IllegalArgumentException | JsonException e) {
             Logger.error("Failed to parse job from bundle.", e);
+        }catch (Exception e){
+            //https://fabric.io/lang-apps-projects/android/apps/com.til.timesnews/
+            // issues/5c0f3626f8b88c296359f51f/sessions/latest?build=93156182
+            Logger.error("Failed to parse job from bundle.", e);
         }
 
         return null;

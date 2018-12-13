@@ -207,8 +207,8 @@ class IncomingPushRunnable implements Runnable {
     /**
      * Posts the notification
      *
-     * @param airship The airship instance.
-     * @param notification The notification.
+     * @param airship        The airship instance.
+     * @param notification   The notification.
      * @param notificationId The notification ID.
      */
     private void postNotification(UAirship airship, Notification notification, int notificationId) {
@@ -252,8 +252,14 @@ class IncomingPushRunnable implements Runnable {
         notification.contentIntent = PendingIntent.getBroadcast(context, 0, contentIntent, 0);
         notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
 
-        Logger.info("Posting notification: " + notification + " id: " + notificationId + " tag: " + message.getNotificationTag());
-        notificationManager.notify(message.getNotificationTag(), notificationId, notification);
+        // try block applied for
+        // https://fabric.io/lang-apps-projects/android/apps/com.til.timesnews/issues/5c0b5e94f8b88c2963002129?time=last-seven-days
+        try {
+            Logger.info("Posting notification: " + notification + " id: " + notificationId + " tag: " + message.getNotificationTag());
+            notificationManager.notify(message.getNotificationTag(), notificationId, notification);
+        } catch (Exception e) {
+            Logger.info("Exception occured while postign notification: " + notification + " id: " + notificationId + " tag: " + message.getNotificationTag());
+        }
     }
 
     /**
@@ -293,17 +299,17 @@ class IncomingPushRunnable implements Runnable {
         for (Map.Entry<String, ActionValue> action : message.getActions().entrySet()) {
 
             ActionRunRequest.createRequest(action.getKey())
-                            .setMetadata(metadata)
-                            .setValue(action.getValue())
-                            .setSituation(Action.SITUATION_PUSH_RECEIVED)
-                            .run();
+                    .setMetadata(metadata)
+                    .setValue(action.getValue())
+                    .setSituation(Action.SITUATION_PUSH_RECEIVED)
+                    .run();
         }
     }
 
     /**
      * Checks if the message should be processed for the given provider.
      *
-     * @param airship The airship instance.
+     * @param airship       The airship instance.
      * @param providerClass The provider class.
      * @return {@code true} if the message should be processed, otherwise {@code false}.
      */
@@ -344,15 +350,15 @@ class IncomingPushRunnable implements Runnable {
         }
 
         JobInfo jobInfo = JobInfo.newBuilder()
-                                 .setAction(PushManagerJobHandler.ACTION_DISPLAY_NOTIFICATION)
-                                 .generateUniqueId(context)
-                                 .setAirshipComponent(PushManager.class)
-                                 .setPersistent(true)
-                                 .setExtras(JsonMap.newBuilder()
-                                                   .putOpt(EXTRA_PUSH, message)
-                                                   .put(EXTRA_PROVIDER_CLASS, providerClass)
-                                                   .build())
-                                 .build();
+                .setAction(PushManagerJobHandler.ACTION_DISPLAY_NOTIFICATION)
+                .generateUniqueId(context)
+                .setAirshipComponent(PushManager.class)
+                .setPersistent(true)
+                .setExtras(JsonMap.newBuilder()
+                        .putOpt(EXTRA_PUSH, message)
+                        .put(EXTRA_PROVIDER_CLASS, providerClass)
+                        .build())
+                .build();
 
         jobDispatcher.dispatch(jobInfo);
     }
@@ -416,7 +422,7 @@ class IncomingPushRunnable implements Runnable {
          * will proceed directly to notification display.
          *
          * @param processed <code>true </code>If the push has been processed, otherwise
-         * <code>false</code>.
+         *                  <code>false</code>.
          * @return The builder instance.
          */
         Builder setProcessed(boolean processed) {
