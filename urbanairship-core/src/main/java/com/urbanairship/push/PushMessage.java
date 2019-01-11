@@ -210,8 +210,6 @@ public class PushMessage implements Parcelable, JsonSerializable {
      */
     public static final String PRIORITY_HIGH = "high";
 
-    public static final String EXTRA_NOTIFICATION_ID = "com.urbanairship.notification_id";
-
     /**
      * Default sound name.
      */
@@ -606,11 +604,6 @@ public class PushMessage implements Parcelable, JsonSerializable {
         return defaultIcon;
     }
 
-    public void putValue(String key, String value) {
-        if(data != null){
-            data.put(key,value);
-        }
-    }
 
     /**
      * Returns the notification tag that should be used when posting the notification.
@@ -630,10 +623,6 @@ public class PushMessage implements Parcelable, JsonSerializable {
     @Nullable
     public String getNotificationChannel() {
         return data.get(EXTRA_NOTIFICATION_CHANNEL);
-    }
-
-    public String getNotificaitonId() {
-        return data.get(EXTRA_NOTIFICATION_ID);
     }
 
 
@@ -746,6 +735,4 @@ public class PushMessage implements Parcelable, JsonSerializable {
     public boolean containsKey(String key) {
         return this.data.containsKey(key);
     }
-
-
 }

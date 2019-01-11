@@ -519,16 +519,15 @@ public class NotificationFactory {
      * @return An integer ID for the next notification.
      */
     public int getNextId(@NonNull PushMessage pushMessage) {
-        int id;
         if (pushMessage.getNotificationTag() != null) {
-            id =  TAG_NOTIFICATION_ID;
-        }else if (constantNotificationId > 0) {
-            id =  constantNotificationId;
-        }else {
-            id = NotificationIdGenerator.nextID();
+            return TAG_NOTIFICATION_ID;
         }
-        pushMessage.putValue(PushMessage.EXTRA_NOTIFICATION_ID,Integer.toString(id));
-        return id;
+
+        if (constantNotificationId > 0) {
+            return constantNotificationId;
+        }
+
+        return NotificationIdGenerator.nextID();
     }
 
 
