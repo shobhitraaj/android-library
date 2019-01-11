@@ -191,7 +191,7 @@ class IncomingPushRunnable implements Runnable {
 
         switch (result.getStatus()) {
             case NotificationFactory.Result.OK:
-                postNotification(airship, result.getNotification(), notificationId);
+                postNotification(factory, airship, result.getNotification(), notificationId);
                 sendPushResultBroadcast(notificationId);
                 break;
             case NotificationFactory.Result.CANCEL:
@@ -211,47 +211,9 @@ class IncomingPushRunnable implements Runnable {
      * @param notification   The notification.
      * @param notificationId The notification ID.
      */
-    private void postNotification(UAirship airship, Notification notification, int notificationId) {
+    private void postNotification(NotificationFactory factory, UAirship airship, Notification notification, int notificationId) {
 
-        if (Build.VERSION.SDK_INT < 26) {
-            if (!airship.getPushManager().isVibrateEnabled() || airship.getPushManager().isInQuietTime()) {
-                // Remove both the vibrate and the DEFAULT_VIBRATE flag
-                notification.vibrate = null;
-                notification.defaults &= ~Notification.DEFAULT_VIBRATE;
-            }
-
-            if (!airship.getPushManager().isSoundEnabled() || airship.getPushManager().isInQuietTime()) {
-                // Remove both the sound and the DEFAULT_SOUND flag
-                notification.sound = null;
-                notification.defaults &= ~Notification.DEFAULT_SOUND;
-            }
-        }
-
-        Intent contentIntent = new Intent(context, CoreReceiver.class)
-                .setAction(PushManager.ACTION_NOTIFICATION_OPENED_PROXY)
-                .addCategory(UUID.randomUUID().toString())
-                .putExtra(PushManager.EXTRA_PUSH_MESSAGE_BUNDLE, message.getPushBundle())
-                .addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
-                .putExtra(PushManager.EXTRA_NOTIFICATION_ID, notificationId);
-
-        // If the notification already has an intent, add it to the extras to be sent later
-        if (notification.contentIntent != null) {
-            contentIntent.putExtra(PushManager.EXTRA_NOTIFICATION_CONTENT_INTENT, notification.contentIntent);
-        }
-
-        Intent deleteIntent = new Intent(context, CoreReceiver.class)
-                .setAction(PushManager.ACTION_NOTIFICATION_DISMISSED_PROXY)
-                .addCategory(UUID.randomUUID().toString())
-                .putExtra(PushManager.EXTRA_PUSH_MESSAGE_BUNDLE, message.getPushBundle())
-                .putExtra(PushManager.EXTRA_NOTIFICATION_ID, notificationId);
-
-        if (notification.deleteIntent != null) {
-            deleteIntent.putExtra(PushManager.EXTRA_NOTIFICATION_DELETE_INTENT, notification.deleteIntent);
-        }
-
-        notification.contentIntent = PendingIntent.getBroadcast(context, 0, contentIntent, 0);
-        notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
-
+        factory.postNotification(airship, notification, notificationId, message);
         // try block applied for
         // https://fabric.io/lang-apps-projects/android/apps/com.til.timesnews/issues/5c0b5e94f8b88c2963002129?time=last-seven-days
         try {
