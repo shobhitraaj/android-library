@@ -5,7 +5,9 @@ package com.urbanairship.push.notifications;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
@@ -19,14 +21,18 @@ import android.support.annotation.StringRes;
 import android.support.v4.app.NotificationCompat;
 
 import com.urbanairship.AirshipReceiver;
+import com.urbanairship.CoreReceiver;
 import com.urbanairship.Logger;
 import com.urbanairship.R;
+import com.urbanairship.UAirship;
+import com.urbanairship.push.PushManager;
 import com.urbanairship.push.PushMessage;
 import com.urbanairship.util.NotificationIdGenerator;
 import com.urbanairship.util.UAStringUtil;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -513,15 +519,16 @@ public class NotificationFactory {
      * @return An integer ID for the next notification.
      */
     public int getNextId(@NonNull PushMessage pushMessage) {
+        int id;
         if (pushMessage.getNotificationTag() != null) {
-            return TAG_NOTIFICATION_ID;
+            id =  TAG_NOTIFICATION_ID;
+        }else if (constantNotificationId > 0) {
+            id =  constantNotificationId;
+        }else {
+            id = NotificationIdGenerator.nextID();
         }
-
-        if (constantNotificationId > 0) {
-            return constantNotificationId;
-        }
-
-        return NotificationIdGenerator.nextID();
+        pushMessage.putValue(PushMessage.EXTRA_NOTIFICATION_ID,Integer.toString(id));
+        return id;
     }
 
 
@@ -581,6 +588,56 @@ public class NotificationFactory {
      */
     public boolean requiresLongRunningTask(PushMessage message) {
         return false;
+    }
+
+    /**
+     * Posts the notification
+     *
+     * @param airship        The airship instance.
+     * @param notification   The notification.
+     * @param notificationId The notification ID.
+     */
+    public void postNotification(UAirship airship, Notification notification, int notificationId,PushMessage message) {
+
+        if (Build.VERSION.SDK_INT < 26) {
+            if (!airship.getPushManager().isVibrateEnabled() || airship.getPushManager().isInQuietTime()) {
+                // Remove both the vibrate and the DEFAULT_VIBRATE flag
+                notification.vibrate = null;
+                notification.defaults &= ~Notification.DEFAULT_VIBRATE;
+            }
+
+            if (!airship.getPushManager().isSoundEnabled() || airship.getPushManager().isInQuietTime()) {
+                // Remove both the sound and the DEFAULT_SOUND flag
+                notification.sound = null;
+                notification.defaults &= ~Notification.DEFAULT_SOUND;
+            }
+        }
+
+        Intent contentIntent = new Intent(context, CoreReceiver.class)
+                .setAction(PushManager.ACTION_NOTIFICATION_OPENED_PROXY)
+                .addCategory(UUID.randomUUID().toString())
+                .putExtra(PushManager.EXTRA_PUSH_MESSAGE_BUNDLE, message.getPushBundle())
+                .addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+                .putExtra(PushManager.EXTRA_NOTIFICATION_ID, notificationId);
+
+        // If the notification already has an intent, add it to the extras to be sent later
+        if (notification.contentIntent != null) {
+            contentIntent.putExtra(PushManager.EXTRA_NOTIFICATION_CONTENT_INTENT, notification.contentIntent);
+        }
+
+        Intent deleteIntent = new Intent(context, CoreReceiver.class)
+                .setAction(PushManager.ACTION_NOTIFICATION_DISMISSED_PROXY)
+                .addCategory(UUID.randomUUID().toString())
+                .putExtra(PushManager.EXTRA_PUSH_MESSAGE_BUNDLE, message.getPushBundle())
+                .putExtra(PushManager.EXTRA_NOTIFICATION_ID, notificationId);
+
+        if (notification.deleteIntent != null) {
+            deleteIntent.putExtra(PushManager.EXTRA_NOTIFICATION_DELETE_INTENT, notification.deleteIntent);
+        }
+
+        notification.contentIntent = PendingIntent.getBroadcast(context, 0, contentIntent, 0);
+        notification.deleteIntent = PendingIntent.getBroadcast(context, 0, deleteIntent, 0);
+
     }
 
 }
