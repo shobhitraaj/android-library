@@ -2,64 +2,12 @@ version = getMavenVersion()
 group = "com.urbanairship.android"
 
 apply plugin: 'com.android.library'
-apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
-apply plugin: "maven"
 
 // For test coverage reports
 apply plugin: 'jacoco'
 
-
-repositories {
-    maven { url "https://raw.github.com/synergian/wagon-git/releases" }
-}
-configurations {
-    deployLibrary
-}
-
-dependencies {
-    deployLibrary "ar.com.synergian:wagon-git:0.2.5"
-}
-
-
-task lookForArtifacts {
-    doLast {
-        def artifactName = ARTIFACT_NAME + '-' + ARTIFACT_VERSION + '.aar'
-        def artifactPath = ARTIFACT_PACKAGE.replace(".", "/") + "/" + ARTIFACT_NAME + "/" + ARTIFACT_VERSION + "/" + artifactName
-        def repositoryUrl = 'https://api.bitbucket.org/1.0/repositories/' + COMPANY + '/' + REPOSITORY_NAME + '/raw/releases/' + artifactPath
-
-        println("")
-        println("Checking if artifact already exists: " + artifactName)
-        println("at URL: " + repositoryUrl)
-
-        return true
-    }
-}
-
-
-uploadArchives.dependsOn lookForArtifacts
-
-uploadArchives {
-
-    repositories.mavenDeployer {
-        configuration = configurations.deployLibrary
-        repository(url: 'git:releases://git@bitbucket.org:' + COMPANY + '/' + REPOSITORY_NAME + '.git')
-
-        uniqueVersion = true
-
-        pom.project {
-            groupId = ARTIFACT_PACKAGE
-            version = ARTIFACT_VERSION
-            artifactId = ARTIFACT_NAME
-            packaging ARTIFACT_PACKAGING
-        }
-    }
-}
-
-
-
-
-
+apply from: "https://raw.githubusercontent.com/utsavjain/ArtifactShip/master/uploadTask.gradle"
 
 android {
     compileSdkVersion 27
@@ -228,3 +176,4 @@ project.afterEvaluate {
     runDexMethodCount.dependsOn(assembleRelease)
     bintrayUpload.dependsOn(assembleRelease)
 }
+
